@@ -5,7 +5,7 @@ from queue import SimpleQueue
 
 PROBLEM_SIZE = 8
 initialPopulationSize = 20
-CROSSOVER_POINT = 0.5
+# CROSSOVER_POINT = 0.5
 MUTATION_RATE = 0.3
 HALT = 1000
 
@@ -36,11 +36,32 @@ def getProbability(fitness):
 
 
 def reproduce(chromosome1, chromosome2):
-	crossover_index = int(CROSSOVER_POINT * len(chromosome1))
-	child1 = chromosome1[0:crossover_index] + chromosome2[crossover_index:]
-	child2 = chromosome2[0:crossover_index] + chromosome1[crossover_index:]
+	# crossover_index = int(CROSSOVER_POINT * len(chromosome1))
+	# child1 = chromosome1[0:crossover_index] + chromosome2[crossover_index:]
+	# child2 = chromosome2[0:crossover_index] + chromosome1[crossover_index:]
+	# return child1, child2
 
-	return child1, child2
+	pos1, pos2 = random.sample([x for x in range(1, len(chromosome1) - 1)], k=2)
+	if pos1 > pos2:
+		pos1, pos2 = pos2, pos1
+
+	genesFrom1 = chromosome1[pos1:pos2+1]
+	genesFrom2 = SimpleQueue()
+	for i in range(len(chromosome2)):
+		gene = chromosome2[i]
+		if gene not in genesFrom1:
+			genesFrom2.put(gene)
+	
+	child = []
+	for i in range(pos1):
+		child.append(genesFrom2.get())
+
+	child = child + genesFrom1
+
+	for i in range(len(child), len(chromosome2)):
+		child.append(genesFrom2.get())
+	
+	return child
 
 
 def mutate(chromosome):
@@ -74,7 +95,10 @@ while not targetFitness in populationDF['FitnessScore'].tolist():
 	# print('parents:', parent1, 'x', parent2)
 
 	# Create offsprings from crossover of the parents
-	child1, child2 = reproduce(parent1, parent2)
+	# child1, child2 = reproduce(parent1, parent2)
+	child1 = reproduce(parent1, parent2)
+	child2 = reproduce(parent2, parent1)
+
 	# Introduce mutaion in the offsprings
 	child1, child2 = mutate(child1), mutate(child2)
 
